@@ -1,0 +1,17 @@
+Everything in this list is included in distribution.
+Third-party licenses are reproduced in LICENSE.
+
+glfw-3.5.1.bin.WIN64
+Source: https://www.glfw.org/download
+License: zlib/libpng
+
+GLAD 1.0
+Source: https://glad.dav1d.de/ (C++ OpenGL 4.6 core-profile)
+License: MIT
+Includes files derived from the Khronos Specifications:
+    - The Khronos Specifications
+    - License: Apache 2.0
+
+Inferno Colormap
+Source: https://github.com/zaman13/Colormaps_MATLAB
+License: MIT
