@@ -8,7 +8,7 @@
 #define OPENGL_VERSION_MINOR    6
 
 /*
-  Command to build: g++ main.cpp glad/src/glad.c -o main.exe -Iglad/include -IGLFW -L. -lglfw3dll -lopengl32 -lgdi32
+  Command to build: g++ main.cpp glad/src/glad.c -o main.exe -Iglad/include -IGLFW -L. -lglfw3 -lopengl32 -lgdi32
 */
 
 unsigned int texWidth = 640;
@@ -407,23 +407,51 @@ bool mouse_pressed_down = false;
 double lastMouseX = 0.0f;
 double lastMouseY = 0.0f;
 
+/*
+ * This function below is optimized enough that you can't tell anything that's going on, so here's the gist:
+ *
+ * The camera position is calculated as follows:
+ * cameraX = radius * cos(pitch) * sin(yaw);
+ * cameraY = radius * sin(pitch);
+ * cameraZ = radius * cos(pitch) * cos(yaw);
+ * 
+ * The forward, right and up vectors define the orientation of the camera.
+ * 
+ * forward is simply where the camera is facing, which in this case is towards the origin, so simply -camera but normalized.
+ * forwardX = -cameraX/radius;
+ * forwardY = -cameraY/radius;
+ * forwardZ = -cameraZ/radius;
+ * 
+ * right is calculated as the cross product of forward with the vector (0, 1, 0), but normalized.
+ * rightX = -forwardZ / rightMag;
+ * rightY = 0.0;
+ * rightZ = forwardX / rightMag;
+ * 
+ * up is calculated as the cross product of right with forward, but normalized.
+ * upX = rightY * forwardZ - rightZ * forwardY;
+ * upY = rightZ * forwardX - rightX * forwardZ;
+ * upZ = rightX * forwardY - rightY * forwardX;
+ * 
+ * I've simply substituted the trigonometric form of cameraXYZ to get simplified solutions to forward, right and up.
+*/
+
 void update_camera_pos() {
-    forwardX = -std::cos(pitch) * std::sin(yaw);
-    forwardY = -std::sin(pitch);
-    forwardZ = -std::cos(pitch) * std::cos(yaw);
+    double cp = std::cos(pitch);
+    double sp = std::sin(pitch);
+    double cy = std::cos(yaw);
+    double sy = std::sin(yaw);
+    forwardX = -cp * sy;
+    forwardY = -sp;
+    forwardZ = -cp * cy;
     cameraX = -radius * forwardX;
     cameraY = -radius * forwardY;
     cameraZ = -radius * forwardZ;
-    rightX = -forwardZ;
-    rightZ = forwardX; // rightY already set to 0.0
-    // up is simply the cross product of right and forward
-    upX = -forwardX * forwardY;
-    upY = forwardX*forwardX + forwardZ*forwardZ;
-    upZ = -forwardY*forwardZ;
-    double magnitude = std::sqrt(upX*upX + upY*upY + upZ*upZ);
-    upX /= magnitude;
-    upY /= magnitude;
-    upZ /= magnitude;
+    rightX = cy;
+    rightY = 0.0;
+    rightZ = -sy;
+    upX = -sp * sy;
+    upY = cp;
+    upZ = -sp * cy;
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
